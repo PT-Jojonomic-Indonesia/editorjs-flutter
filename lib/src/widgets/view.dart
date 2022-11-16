@@ -5,7 +5,6 @@ import 'package:editorjs_flutter/src/model/EditorJSData.dart';
 import 'package:editorjs_flutter/src/model/EditorJSViewStyles.dart';
 import 'package:editorjs_flutter/src/model/EditorJSCSSTag.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_html/style.dart';
 
 class EditorJSView extends StatefulWidget {
   final String? editorJSData;
@@ -30,14 +29,14 @@ class EditorJSViewState extends State<EditorJSView> {
     super.initState();
 
     setState(
-      () {
+          () {
         dataObject = EditorJSData.fromJson(jsonDecode(widget.editorJSData!));
         styles = EditorJSViewStyles.fromJson(jsonDecode(widget.styles!));
 
         customStyleMap = generateStylemap(styles.cssTags!);
 
         dataObject.blocks!.forEach(
-          (element) {
+              (element) {
             double levelFontSize = 16;
 
             switch (element.data!.level) {
@@ -66,14 +65,14 @@ class EditorJSViewState extends State<EditorJSView> {
                 items.add(Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      Expanded(child: Text(
                         element.data!.text!,
                         style: TextStyle(
                             fontSize: levelFontSize,
                             fontWeight: (element.data!.level! <= 3)
                                 ? FontWeight.bold
                                 : FontWeight.normal),
-                      )
+                      ),),
                     ]));
                 break;
               case "paragraph":
@@ -88,7 +87,7 @@ class EditorJSViewState extends State<EditorJSView> {
                 int counter = 1;
 
                 element.data!.items!.forEach(
-                  (element) {
+                      (element) {
                     if (style == 'ordered') {
                       bullet = counter.toString();
                       items.add(
@@ -96,9 +95,9 @@ class EditorJSViewState extends State<EditorJSView> {
                           Expanded(
                             child: Container(
                                 child: Html(
-                              data: bullet + element,
-                              style: customStyleMap,
-                            )),
+                                  data: bullet + element,
+                                  style: customStyleMap,
+                                )),
                           )
                         ]),
                       );
@@ -123,15 +122,18 @@ class EditorJSViewState extends State<EditorJSView> {
                 break;
               case "delimiter":
                 items.add(Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Text('***', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center,)
-                      Expanded(child: Divider(color: Colors.grey))
+                      Text('***', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center,)
+                      // Expanded(child: Divider(color: Colors.grey))
                     ]));
                 break;
               case "image":
                 items.add(Image.network(element.data!.file!.url!));
                 break;
+              default:
+                items.add(SizedBox.shrink());
             }
             items.add(const SizedBox(height: 10));
           },
@@ -144,18 +146,19 @@ class EditorJSViewState extends State<EditorJSView> {
     Map<String, Style> map = <String, Style>{};
 
     styles.forEach(
-      (element) {
+          (element) {
         map.putIfAbsent(
             element.tag.toString(),
-            () => Style(
-                backgroundColor: (element.backgroundColor != null)
-                    ? getColor(element.backgroundColor!)
-                    : null,
-                color:
+                () =>
+                Style(
+                    backgroundColor: (element.backgroundColor != null)
+                        ? getColor(element.backgroundColor!)
+                        : null,
+                    color:
                     (element.color != null) ? getColor(element.color!) : null,
-                padding: (element.padding != null)
-                    ? EdgeInsets.all(element.padding!)
-                    : null));
+                    padding: (element.padding != null)
+                        ? EdgeInsets.all(element.padding!)
+                        : null));
       },
     );
 
