@@ -1,3 +1,8 @@
+## [0.0.6] - Fix Overflow
+* Fix unsupported type to SizeBox
+* Fix overflow on header
+* Change Delimiter to tri-star
+
 ## [0.0.5] - Links support
 * Now you may add links in the editor. Just set the name and the url to set.
 NOTE: Right now is a basic implementation. I'll make it adhoc to EditorJS standard later
