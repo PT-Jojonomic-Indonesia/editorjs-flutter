@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:code_text_field/code_text_field.dart';
 import 'package:editorjs_flutter/src/model/EditorJSBlock.dart';
 import 'package:flutter/material.dart';
 import 'package:editorjs_flutter/src/model/EditorJSData.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 typedef EditorJSComponentBuilder = Widget Function(
   BuildContext context,
@@ -22,11 +24,18 @@ class EditorJSView extends StatefulWidget {
 class EditorJSViewState extends State<EditorJSView> {
   final List<Widget> items = <Widget>[];
   EditorJSData? dataObject;
+  CodeController? _codeController;
 
   @override
   void initState() {
     super.initState();
     _buildBlocks();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _codeController?.dispose();
   }
 
   @override
@@ -77,6 +86,136 @@ class EditorJSViewState extends State<EditorJSView> {
               style: defaultStyleMap,
             ));
             break;
+          case "code":
+            _codeController = CodeController(
+              text: element.data!.code,
+            );
+            items.add(SizedBox(
+              height: 200,
+              child: CodeField(
+                controller: _codeController ?? CodeController(),
+                textStyle: TextStyle(
+                  fontFamily: 'SourceCode',
+                  color: Colors.black,
+                ),
+                expands: true,
+                lineNumbers: false,
+                background: getColor('#FFF9F9F9'),
+                readOnly: true,
+                horizontalScroll: true,
+              ),
+            ));
+            break;
+          case "raw":
+            _codeController = CodeController(
+              text: element.data!.html,
+            );
+            items.add(CodeField(
+              controller: _codeController ?? CodeController(),
+              textStyle: TextStyle(fontFamily: 'SourceCode'),
+              lineNumbers: false,
+              background: getColor('#FF1F2128'),
+              readOnly: true,
+              horizontalScroll: true,
+            ));
+            break;
+          case "warning":
+            items.add(Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FaIcon(
+                  FontAwesomeIcons.exclamationCircle,
+                  size: 24,
+                ),
+                SizedBox(
+                  width: 8,
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.black12,
+                            ),
+                            borderRadius: BorderRadius.circular(4)),
+                        child: Text(element.data?.title ?? ''),
+                      ),
+                      SizedBox(
+                        height: 4,
+                      ),
+                      Container(
+                        width: double.infinity,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.black12,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(element.data?.message ?? ''),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ));
+            break;
+          case "quote":
+            items.add(Row(
+              children: [
+                Container(
+                  width: 15,
+                  constraints: BoxConstraints(minHeight: 100),
+                  color: Colors.black26,
+                ),
+                Expanded(
+                  child: Container(
+                    constraints: BoxConstraints(minHeight: 100),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+                    color: getColor('#FFF9F9F9'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FaIcon(
+                          FontAwesomeIcons.quoteLeft,
+                          size: 20,
+                          color: getColor('#FFCCCCCC'),
+                        ),
+                        SizedBox(
+                          height: 16,
+                        ),
+                        Text(
+                          element.data?.text ?? '',
+                          textAlign: element.data?.alignment == 'left'
+                              ? TextAlign.start
+                              : TextAlign.center,
+                        ),
+                        SizedBox(
+                          height: 16,
+                        ),
+                        Text(
+                          element.data?.caption ?? '',
+                          textAlign: element.data?.alignment == 'left'
+                              ? TextAlign.start
+                              : TextAlign.center,
+                        )
+                      ],
+                    ),
+                  ),
+                )
+              ],
+            ));
+            break;
           case "list":
             String bullet = "\u2022 ";
             String? style = element.data!.style;
@@ -106,6 +245,28 @@ class EditorJSViewState extends State<EditorJSView> {
               }
             });
             break;
+          case "checklist":
+            element.data!.checklist!.forEach((element) {
+              items.add(Row(
+                children: [
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Checkbox(
+                    value: element.checked,
+                    onChanged: (value) {},
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100)),
+                    activeColor: getColor('#FF398AE5'),
+                  ),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Text(element.text ?? ''),
+                ],
+              ));
+            });
+            break;
           case "delimiter":
             items.add(Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -119,8 +280,36 @@ class EditorJSViewState extends State<EditorJSView> {
                     fontWeight: FontWeight.bold,
                   ),
                 )
-                // Expanded(child: Divider(color: Colors.grey))
               ],
+            ));
+            break;
+          case "table":
+            items.add(SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(columns: [
+                ...?element.data?.headers?.map((e) => DataColumn(
+                        label: Expanded(
+                      child: Text(
+                        e.toString(),
+                        style: TextStyle(
+                            fontWeight: element.data?.withHeadings == true
+                                ? FontWeight.bold
+                                : FontWeight.normal),
+                      ),
+                    )))
+              ], rows: [
+                ...?element.data?.body?.map(
+                  (e) => DataRow(
+                    cells: [
+                      ...e.map(
+                        (element) => DataCell(
+                          Text(element.toString()),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
             ));
             break;
           case "image":

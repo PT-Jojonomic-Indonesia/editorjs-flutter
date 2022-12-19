@@ -2,8 +2,6 @@ import 'package:editorjs_flutter/src/widgets/components/textcomponent.dart';
 import 'package:editorjs_flutter/src/widgets/toolbar.dart';
 import 'package:flutter/material.dart';
 
-import 'toolbar.dart';
-
 class EditorJSEditor extends StatefulWidget {
   const EditorJSEditor({Key? key}) : super(key: key);
 
