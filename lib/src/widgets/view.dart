@@ -62,6 +62,21 @@ class EditorJSViewState extends State<EditorJSView> {
           padding: EdgeInsets.all(5.0),
         ),
       };
+      final centeredStyleMap = {
+        'body': Style(
+          margin: Margins.zero,
+          textAlign: TextAlign.center,
+        ),
+        'code': Style(
+          backgroundColor: getColor('#33ff0000'),
+          color: getColor('#ffff0000'),
+          padding: EdgeInsets.all(5.0),
+        ),
+        'mark': Style(
+          backgroundColor: getColor('#ffffff00'),
+          padding: EdgeInsets.all(5.0),
+        ),
+      };
       dataObject = EditorJSData.fromJson(jsonDecode(widget.editorJSData));
       dataObject?.blocks?.forEach((element) {
         switch (element.type) {
@@ -170,16 +185,11 @@ class EditorJSViewState extends State<EditorJSView> {
           case "quote":
             items.add(Row(
               children: [
-                Container(
-                  width: 15,
-                  constraints: BoxConstraints(minHeight: 100),
-                  color: Colors.black26,
-                ),
                 Expanded(
                   child: Container(
                     constraints: BoxConstraints(minHeight: 100),
                     padding: EdgeInsets.symmetric(
-                      horizontal: 8,
+                      horizontal: 16,
                       vertical: 8,
                     ),
                     color: getColor('#FFF9F9F9'),
@@ -194,21 +204,21 @@ class EditorJSViewState extends State<EditorJSView> {
                         SizedBox(
                           height: 16,
                         ),
-                        Text(
-                          element.data?.text ?? '',
-                          textAlign: element.data?.alignment == 'left'
-                              ? TextAlign.start
-                              : TextAlign.center,
+                        Html(
+                          data: element.data?.text ?? '',
+                          style: element.data?.alignment == 'left'
+                              ? defaultStyleMap
+                              : centeredStyleMap,
                         ),
                         SizedBox(
                           height: 16,
                         ),
-                        Text(
-                          element.data?.caption ?? '',
-                          textAlign: element.data?.alignment == 'left'
-                              ? TextAlign.start
-                              : TextAlign.center,
-                        )
+                        Html(
+                          data: element.data?.caption ?? '',
+                          style: element.data?.alignment == 'left'
+                              ? defaultStyleMap
+                              : centeredStyleMap,
+                        ),
                       ],
                     ),
                   ),
